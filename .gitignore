@@ -4,3 +4,4 @@ venv
 *.swp
 blah
 __pycache__
+*.db

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+<a class="btn btn-default"
+   href="{{ url_for('.uploadPicture') }}"
+   role="button">
+    Upload a Picture
+</a>
+
+<img src="/view/1" />
+{% endblock %}

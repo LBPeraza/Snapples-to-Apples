@@ -2,6 +2,8 @@ import os
 
 _basedir = os.path.abspath(os.path.dirname(__file__))
 
+ADMINS = frozenset(['jdoe', 'lbperaza'])
+
 DEBUG = True
 
 SECRET_KEY = 'shhh, don\'t tell anyone'

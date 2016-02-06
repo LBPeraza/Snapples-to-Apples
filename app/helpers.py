@@ -7,7 +7,7 @@ def loginRequired(f):
     @wraps(f)
     def g(*args, **kwargs):
         if isLoggedIn():
-            f(*args, **kwargs)
+            return f(*args, **kwargs)
         else:
             flash('You have to be logged in to do that.')
             return redirect(url_for('snapples.index'))

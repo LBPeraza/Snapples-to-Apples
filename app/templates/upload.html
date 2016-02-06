@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Picture{% endblock %}
+
+{% block body %}
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        <!--<label for="picture">Pick a Picture</label>-->
+        <!--<input type="file" id="picture" name="picture">-->
+        {{ form.picture.label }}
+        {{ form.picture(size=20) }}
+    </div>
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+{% endblock %}
