@@ -29,6 +29,9 @@ class User(db.Model):
         m.update(plaintext.encode())
         return m.digest() == self.password
 
+    def __repr__(self):
+        return '<User %s>' % self.username
+
 class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     phrase = db.Column(db.String(50))
@@ -47,6 +50,7 @@ class Game(db.Model):
         backref=db.backref('game', lazy='joined'),
         lazy='dynamic'
     )
+    in_progress = db.Column(db.Boolean, default=False)
 
 
 class Picture(db.Model):

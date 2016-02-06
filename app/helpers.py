@@ -12,8 +12,7 @@ def flashErrors(form):
                 getattr(form, field).label.text,
                 error
             )
-            flash(e)
-            print(e)
+            flash(e, 'danger')
 
 ### Decorators
 def loginRequired(f):
@@ -22,7 +21,7 @@ def loginRequired(f):
         if isLoggedIn():
             return f(*args, **kwargs)
         else:
-            flash('You have to be logged in to do that.')
+            flash('You have to be logged in to do that.', 'warning')
             return redirect(url_for('snapples.index'))
     return g
 

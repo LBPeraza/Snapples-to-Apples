@@ -2,12 +2,43 @@
 
 {% block title %}Home{% endblock %}
 
+{% block head %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/table-link.css') }}" />
+<script src="{{ url_for('static', filename='js/table-link.js') }}"></script>
+{% endblock %}
+
 {% block body %}
 
-<a class="btn btn-default"
-   href="{{ url_for('.uploadPicture') }}"
-   role="button">
-    Upload a Picture
-</a>
+<div class="row">
+    <div class="col-md-8">
+        <h3>Join a Game</h3>
+        {% if (games is defined) and (games|length > 0) %}
+        <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr>
+                <th></th>
+                <th>Host</th>
+                <th>Size</th>
+            </tr></thead>
+            <tbody>
+                {% for game in games %}
+                <tr class="tr-link" data-href="{{ url_for('.joinGame', gameID=game.id) }}">
+                    <td>{{ loop.index }}</td>
+                    <td>{{ game.host }}</td>
+                    <td>{{ game.playercount }}</td>
+                </tr>
+            </tbody>
+            {% endfor %}
+        </table>
+        </div>
+        {% else %}
+        <h4>No games found</h4>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <h3>Create a Game</h3>
+    </div>
+</div>
 
 {% endblock %}
