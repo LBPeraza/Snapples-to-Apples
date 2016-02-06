@@ -1,9 +1,10 @@
 import random
 
-d = open('dict.txt')
-adjs = d.readlines()
+def initializeAdjDict():
+    d = open('dict.txt')
+    adjs = d.readlines()
+    adjs = [word.strip() for word in adjs]
+    return adjs
 
-adjs = [word.strip() for word in adjs]
-
-for i in range(10):
-    print(adjs[random.randint(0, len(adjs))])
+def getWord(adjs, numWords):
+    words = [adjs[random.randint(0, len(adjs)) for i in range(numWords)]
