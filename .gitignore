@@ -2,3 +2,5 @@
 venv
 .DS_STORE
 *.swp
+blah
+__pycache__
