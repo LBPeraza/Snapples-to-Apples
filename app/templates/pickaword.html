@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Lobby{% endblock %}
+
+{% block links %}
+    {{ macros.navlink("Log Out", url_for(".logout")) }}
+{% endblock %}
+
+{% block pagename %}Round {{ game_round }}{% endblock %}
+{% block subname %}
+{% if isPicker % }
+    You're picking for this round! Pick a word.
+{% else %}
+    {{picker}} is choosing the word!
+{% endif %}
+{% endblock %}
+
+{% block body %}
+{% if isPicker %}
+<section>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2>Players</h2>
+                <hr class="star-primary"></hr>
+            </div>
+            <div class="col-lg-8 col-lg-offset-2 text-center">
+                <table class="table table-striped">
+                    <thead>
+                        <tr class="text-center">
+                            <th class="text-center">Word</th>
+                            <th class="text-center">Pick</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for word in words %}
+                        <tr>
+                            <td style="vertical-align: middle;">{{ word }}</td>
+                            <td style="vertical-align: middle;">
+                                <a href="{{ url_for(".pick", word=word) }}"
+                                    class="btn btn-danger">Pick</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <form method='POST' action="/pickaword/">
+                    {{form.hidden_tag()}}
+                        <button type="submit" class="btn btn-default">Get New Words</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+<script src="{{ url_for("static", filename="js/game-lobby.js") }}"></script>
+{% endblock %}

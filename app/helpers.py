@@ -60,7 +60,7 @@ def initializeAdjDict():
     return adjs
 
 def getWord(adjs, numWords):
-    words = random.sample(adjs, numWords)
+    words = [adjs[random.randint(0, len(adjs))] for i in range(numWords)]
     return words
 
 def loadAdjs(filename):

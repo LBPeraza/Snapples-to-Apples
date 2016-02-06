@@ -61,6 +61,12 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                <form method='POST' action="/pickaword/">
+                    {{form.hidden_tag()}}
+                    {% if isHost %}
+                        <button type="submit" class="btn btn-default">Start the Game</button>
+                    {% endif %}
+                </form>
             </div>
         </div>
     </div>

@@ -6,6 +6,15 @@ from flask.ext.uploads import UploadSet, IMAGES
 
 images = UploadSet('images', IMAGES)
 
+class GameForm(Form):
+    pass
+
+class PickAWordForm(Form):
+    pass
+
+class PlayGameForm(Form):
+    picture = HiddenField()
+
 class TakeForm(Form):
     picture = HiddenField()
 

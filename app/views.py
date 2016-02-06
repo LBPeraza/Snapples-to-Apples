@@ -12,6 +12,8 @@ from app.models import *
 from app.helpers import *
 from app.forms import *
 
+adjs = initializeAdjDict()
+
 mod = Blueprint('snapples',
                 __name__,
                 url_prefix='/',
@@ -75,10 +77,73 @@ def gamePage(user, game):
         users = game.users.order_by(User.username).all()
         random.seed(game.order_seed)
         random.shuffle(users)
+        form = GameForm()
         return render_template('game-lobby.html',
                                username=session['user-info']['username'],
                                users=users,
-                               isHost=game.host_id == user.id)
+                               isHost=game.host_id == user.id, form=form)
+
+@mod.route('beginGame', methods=['GET'])
+@loginRequired
+def beginGame():
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    assert(user is not None)
+    game = user.game
+    if game is None:
+        flash('You\'re not in a game', 'warning')
+        return redirect(url_for('.index'))
+    game.in_progress = True
+    game.current_round = 1
+    db.session.commit()
+    return redirect(url_for('.pickaword'))
+
+@mod.route('pickaword/', methods=['GET', 'POST'])
+@loginRequired
+def pickaword():
+    form = PickAWordForm(request.form)
+    words = getWord(adjs, 5)
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    assert(user is not None)
+    game = user.game
+    if game is None:
+        flash('You\'re not in a game!', 'warning')
+        return redirect(url_for('.index'))
+    db.session.commit()
+    picker_id = game.current_player
+    print(picker_id)
+    picker = User.query.filter_by(id=picker_id).first()
+    return render_template('pickaword.html', form=form, 
+        isPicker=picker_id == user.id, words=words, picker=picker.username,
+        game_round=game.current_round)
+
+@mod.route('pick/<word>', methods=['GET'])
+@loginRequired
+def pick(word):
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    game = user.game
+    if game is None:
+        flash('You\'re not in a game!', 'warning')
+        return redirect(url_for('.index'))
+    game.phrase = word
+    db.session.commit()
+    return redirect(url_for('.playGame'))
+
+@mod.route('playGame/', methods=['GET', 'POST'])
+@loginRequired
+def playGame():
+    form = PlayGameForm(request.form)
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    game = user.game
+    if game is None:
+        flash('You\'re not in a game!', 'warning')
+        return redirect(url_for('.index'))
+    current_word = game.phrase
+    current_round = game.current_round
+    picker_id = game.current_player
+    return render_template('playGame.html', form=form, word=current_word,
+        round=current_round, isPicker=picker_id==user.id)
+
+
 @mod.route('seePicture/', methods=['GET', 'POST'])
 def seePicture():
     form = SeePictureForm(request.form)
