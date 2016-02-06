@@ -4,7 +4,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.config.from_object('config')
 
-db = SQLALchemy(app)
+db = SQLAlchemy(app)
 
 @app.errorhandler(404)
 def notFound(error):
@@ -14,4 +14,4 @@ from app.views import mod
 app.register_blueprint(mod)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

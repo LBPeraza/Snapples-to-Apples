@@ -1,4 +1,22 @@
 import random
+from flask import session, url_for, render_template, flash, redirect
+from functools import wraps
+
+### Decorators
+def loginRequired(f):
+    @wraps(f)
+    def g(*args, **kwargs):
+        if isLoggedIn():
+            f(*args, **kwargs)
+        else:
+            flash('You have to be logged in to do that.')
+            return redirect(url_for('snapples.index'))
+    return g
+
+### Game helpers
+def isLoggedIn():
+    info = session.get('user-info')
+    return (info is not None)
 
 ### Dictionary helpers
 def initializeAdjDict():
@@ -8,7 +26,8 @@ def initializeAdjDict():
     return adjs
 
 def getWord(adjs, numWords):
-    words = [adjs[random.randint(0, len(adjs)) for i in range(numWords)]
+    words = random.sample(adjs, numWords)
+    return words
 
 def loadAdjs(filename):
 
