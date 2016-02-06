@@ -84,27 +84,40 @@ def gamePage(user, game):
 
 def gamePlay(user, game):
     if game.phrase == "" or game.phrase == None: #not sure which it'll be
-        #picking phase
-        form = PickAWordForm(request.form)
-        words = getWord(adjs, 5)
-        picker_id = game.current_player
-        picker = User.query.filter_by(id=picker_id).first()
-        return render_template('pickaword.html', form=form, 
-            isPicker=picker_id == user.id, words=words, picker=picker.username,
-            game_round=game.current_round)
+        return pickingPhase(user, game)
     else:
-        current_word = game.phrase
-        current_round = game.current_round
+        picker_id = game.current_player
+        if picker_id == user.id:
+            return selectingPhase(user, game)
+        else:
+            return uploadingPhase(user, game)
+
+def pickingPhase(user, game):
+    form = PickAWordForm(request.form)
+    words = getWord(adjs, 5)
+    picker_id = game.current_player
+    picker = User.query.filter_by(id=picker_id).first()
+    return render_template('pickaword.html', form=form, 
+        isPicker=picker_id == user.id, words=words, picker=picker.username,
+        game_round=game.current_round)
+
+def selectingPhase(user, game):
+    form = PlayGameForm(request.form)
+    return render_template('playGame.html', form=form, word=game.phrase,
+        round=game.current_round, pictures=game.pictures)
+
+def uploadingPhase(user, game):
+    #picture = Picture.query.filter_by(user=user.id).first()
+    #if picture == None:
+        form = TakeForm(request.form)
         picker_id = game.current_player
         picker = User.query.filter_by(id=picker_id).first()
-        if picker_id == user.id:
-            form = PlayGameForm(request.form)
-            return render_template('playGame.html', form=form, word=current_word,
-                round=current_round, pictures=game.pictures)
-        else:
-            form = TakeForm(request.form)
-            return render_template('take.html', form=form, word=current_word,
-                round=current_round, picker=picker.username)
+        return render_template('take.html', form=form, word=game.phrase,
+            round=game.current_round, picker=picker.username)
+    #else:
+     #   form = WaitForm(request.form)
+      #  return render_template('')
+
 
 @mod.route('beginGame/', methods=['GET', 'POST'])
 @loginRequired
