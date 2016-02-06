@@ -40,7 +40,7 @@ admin.add_view(AuthAdminView(Game))
 admin.add_view(AuthAdminView(Picture))
 
 
-@mod.route('/')
+@mod.route('/', methods=['GET', 'POST'])
 def index():
     if isLoggedIn():
         return loggedInPage()
@@ -72,7 +72,7 @@ def loggedInPage():
 
 def gamePage(user, game):
     if game.in_progress:
-        abort(501)
+        return gamePlay(user, game)
     else:
         users = getPlayerOrder(game)
         form = GameForm()
@@ -82,8 +82,31 @@ def gamePage(user, game):
                                isHost=game.host_id == user.id,
                                form=form)
 
+def gamePlay(user, game):
+    if game.phrase == "" or game.phrase == None: #not sure which it'll be
+        #picking phase
+        form = PickAWordForm(request.form)
+        words = getWord(adjs, 5)
+        picker_id = game.current_player
+        picker = User.query.filter_by(id=picker_id).first()
+        return render_template('pickaword.html', form=form, 
+            isPicker=picker_id == user.id, words=words, picker=picker.username,
+            game_round=game.current_round)
+    else:
+        current_word = game.phrase
+        current_round = game.current_round
+        picker_id = game.current_player
+        picker = User.query.filter_by(id=picker_id).first()
+        if picker_id == user.id:
+            form = PlayGameForm(request.form)
+            return render_template('playGame.html', form=form, word=current_word,
+                round=current_round, pictures=game.pictures)
+        else:
+            form = TakeForm(request.form)
+            return render_template('take.html', form=form, word=current_word,
+                round=current_round, picker=picker.username)
 
-@mod.route('beginGame', methods=['GET'])
+@mod.route('beginGame/', methods=['GET', 'POST'])
 @loginRequired
 def beginGame():
     user = User.query.filter_by(id=session['user-info']['id']).first()
@@ -93,28 +116,11 @@ def beginGame():
         flash('You\'re not in a game', 'warning')
         return redirect(url_for('.index'))
     game.in_progress = True
-    game.current_round = 1
+    game.current_round = 0
+    users = getPlayerOrder(game)
+    game.current_player = users[0].id
     db.session.commit()
-    return redirect(url_for('.pickaword'))
-
-@mod.route('pickaword/', methods=['GET', 'POST'])
-@loginRequired
-def pickaword():
-    form = PickAWordForm(request.form)
-    words = getWord(adjs, 5)
-    user = User.query.filter_by(id=session['user-info']['id']).first()
-    assert(user is not None)
-    game = user.game
-    if game is None:
-        flash('You\'re not in a game!', 'warning')
-        return redirect(url_for('.index'))
-    db.session.commit()
-    picker_id = game.current_player
-    print(picker_id)
-    picker = User.query.filter_by(id=picker_id).first()
-    return render_template('pickaword.html', form=form, 
-        isPicker=picker_id == user.id, words=words, picker=picker.username,
-        game_round=game.current_round)
+    return redirect(url_for('.index'))
 
 @mod.route('pick/<word>', methods=['GET'])
 @loginRequired
@@ -126,44 +132,49 @@ def pick(word):
         return redirect(url_for('.index'))
     game.phrase = word
     db.session.commit()
-    return redirect(url_for('.playGame'))
-
-
-@mod.route('playGame/', methods=['GET', 'POST'])
-@loginRequired
-def playGame():
-    form = PlayGameForm(request.form)
-    user = User.query.filter_by(id=session['user-info']['id']).first()
-    game = user.game
-    if game is None:
-        flash('You\'re not in a game!', 'warning')
-        return redirect(url_for('.index'))
-    current_word = game.phrase
-    current_round = game.current_round
-    picker_id = game.current_player
-    return render_template('playGame.html', form=form, word=current_word,
-        round=current_round, isPicker=picker_id==user.id)
-
-
-@mod.route('seePicture/', methods=['GET', 'POST'])
-def seePicture():
-    form = SeePictureForm(request.form)
-    return render_template('seePicture.html', form=form)
-
+    return redirect(url_for('.index'))
 
 @mod.route('take/', methods=['GET', 'POST'])
+@loginRequired
 def take():
     form = PictureForm()
     if request.method == 'POST' and form.validate():
         #get the picture and do stuff with it
+        user = User.query.filter_by(id=session['user-info']['id']).first()
+        game = user.game
+        if game is None:
+            flash('You\'re not in a game!', 'warning')
+            return redirect(url_for('.index'))
         picture = Picture()
         picture.data = form.picture.data.read()
         db.session.add(picture)
+        game.pictures.append(picture)
         db.session.commit()
         flash('Success! Picture id: %d' % picture.id, 'success')
         return 'Success'
     flashErrors(form)
     return render_template('take.html', form=form)
+
+@mod.route('winner/<picture>', methods=['GET'])
+@loginRequired
+def winner(picture):
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    game = user.game
+    if game is None:
+        flash('You\'re not in a game!', 'warning')
+        return redirect(url_for('.index'))
+    game.current_round += 1
+    if game.current_round > game.rounds:
+        #game over
+        game.in_progress = False
+    else:
+        #go on to next round
+        game.phrase = ""
+        game.pictures = []
+        users = getPlayerOrder(game)
+        game.current_player = users[game.current_round % len(users)]
+    db.session.commit()
+    return redirect(url_for('.index'))
 
 
 @mod.route('login/', methods=['GET', 'POST'])

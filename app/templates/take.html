@@ -3,12 +3,13 @@
 {% block title %}Take a Picture{% endblock %}
 
 {% block links %}
-{{ macros.navlink("Home", url_for(".index")) }}
+{{ macros.navlink("Log Out", url_for(".logout")) }}
 {% endblock %}
 
 {% block pagename %}Take a Picture{% endblock %}
 
 {% block body %}
+    The word is {{word}}. {{picker}} is judging.
     <video id="video" width="640" height="480" autoplay></video>
     <button id="snap">Snap!</button>
     <form method='POST' id="picForm">
