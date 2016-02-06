@@ -11,8 +11,8 @@
 {% block body %}
     <video id="video" width="640" height="480" autoplay></video>
     <button id="snap">Snap!</button>
-    <form method='POST' action='/seePicture/'>
-    {{form.hidden_tag()}}
+    <form method='POST' id="picForm">
+        {{ form.hidden_tag() }}
         <input type="hidden" id="picture" name="picture">
         <button type="submit" class="btn btn-default">Submit</button>
     </form>
@@ -21,7 +21,7 @@
 
 {% block scripts %}
 <script>
-    window.addEventListener("DOMContentLoaded", function() {
+ $(document).ready(function() {
     var canvas = document.getElementById("canvas"),
     context = canvas.getContext("2d"),
     video = document.getElementById("video"),
@@ -37,7 +37,7 @@
         }, errBack);
     } else if(navigator.webkitGetUserMedia) { // WebKit-prefixed
         navigator.webkitGetUserMedia(videoObj, function(stream){
-            video.src = window.webkitURL.createObjectURL(stream);
+            video.src = window.URL.createObjectURL(stream);
             video.play();
         }, errBack);
     }
@@ -55,14 +55,41 @@
         return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
     }
 
-    document.getElementById("snap").addEventListener("click", function() { 
+    $('#snap').click(function() { 
         context.drawImage(video, 0, 0, 640, 480);
-        dataURL = convertCanvasToImage(canvas)
+        dataURL = convertCanvasToImage(canvas);
         document.getElementById('picture').value = dataURL;
-        localStorage.setItem('imgData', dataURL);
-        var dataImage = localStorage.getItem('imgData');
+        // localStorage.setItem('imgData', dataURL);
+        // var dataImage = localStorage.getItem('imgData');
     });
 
-}, false)
+    $('#picForm').submit(function(e) {
+        var canvas = document.getElementById('canvas');
+        var dataURL = canvas.toDataURL("image/png");
+        var blobBin = atob(dataURL.split(',')[1]);
+        var a = [];
+        for (var i = 0; i < blobBin.length; i++) {
+            a.push(blobBin.charCodeAt(i));
+        };
+        var file = new Blob([new Uint8Array(a)], {type: 'image/png'});
+
+        var formdata = new FormData();
+        formdata.append('picture', file);
+        var tok = $('#csrf_token').val();
+        formdata.append('csrf_token', tok);
+        $.ajax({
+            url: '/take/',
+            type: 'post',
+            data: formdata,
+            processData: false,
+            contentType: false,
+        }).done(function(resp) {
+            window.location.href = '/';
+        });
+
+        e.preventDefault();
+    });
+
+});
 </script>
 {% endblock %}

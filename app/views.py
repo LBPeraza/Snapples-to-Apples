@@ -86,16 +86,15 @@ def seePicture():
 
 @mod.route('take/', methods=['GET', 'POST'])
 def take():
-    form = TakeForm(request.form)
+    form = PictureForm()
     if request.method == 'POST' and form.validate():
         #get the picture and do stuff with it
-        print(len(form.picture.data))
         picture = Picture()
-        picture.data = form.picture.data.encode('utf-8')
+        picture.data = form.picture.data.read()
         db.session.add(picture)
         db.session.commit()
         flash('Success! Picture id: %d' % picture.id, 'success')
-        return redirect(url_for('.seePicture'))
+        return 'Success'
     flashErrors(form)
     return render_template('take.html', form=form)
 
@@ -107,14 +106,10 @@ def login():
     form = UsernamePasswordForm(request.form)
     if request.method == 'POST' and form.validate():
         #try to log them in
-        print(1)
         user = User.query.filter_by(username=form.username.data).first()
-        print(2)
         if user is None:
-            print(3)
             flash('User not found', 'danger')
         elif user.is_correct_password(form.password.data):
-            print(4)
             #log in the user
             userInfo = dict()
             userInfo['username'] = user.username
@@ -259,10 +254,10 @@ def uploadPicture():
         db.session.add(picture)
         db.session.commit()
         flash('Success! Picture id: %d' % picture.id, 'success')
-        return redirect(url_for('.index'))
+        return 'Success'
     else:
         flashErrors(form)
-        return render_template('upload.html', form=form)
+        return redirect(url_for('.take'))
 
 
 @mod.route('view/<picID>', methods=['GET'])
@@ -276,6 +271,13 @@ def viewPicture(picID):
         abort(404)
     print(len(picture.data))
     return send_file(io.BytesIO(picture.data))
+
+
+@mod.route('look/<picID>', methods=['GET'])
+@loginRequired
+@nocache
+def look(picID):
+    return render_template('look.html', id=picID)
 
 
 @mod.route('logout/')

@@ -10,7 +10,7 @@ class TakeForm(Form):
     picture = HiddenField()
 
 class PictureForm(Form):
-    picture = HiddenField()
+    picture = HiddenField('picture')
 
 class SeePictureForm(Form):
     picture = HiddenField()

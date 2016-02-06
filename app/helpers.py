@@ -13,6 +13,7 @@ def flashErrors(form):
                 error
             )
             flash(e, 'danger')
+            print(e)
 
 ### Decorators
 def loginRequired(f):
