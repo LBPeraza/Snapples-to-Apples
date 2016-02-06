@@ -69,15 +69,19 @@ A game of taking the <strong>Right Pictures</strong> at the
 
         <div class="row">
             <div class="col-sm-4">
-                <img class="img-circle img-responsive img-center" src="http://placehold.it/200x200" alt="">
+                <img class="img-circle img-responsive img-center"
+                     src="{{url_for("static", filename="images/lbp.jpg")}}" alt="Lukas">
                 <h4>Lukas Peraza</h4>
             </div>
             <div class="col-sm-4">
-                <img class="img-circle img-responsive img-center" src="http://placehold.it/200x200" alt="">
+                <img class="img-circle img-responsive img-center"
+                     src="{{url_for("static", filename="images/kim.jpg")}}" alt="Kim">
                 <h4>Kim Kleiven</h4>
             </div>
             <div class="col-sm-4">
-                <img class="img-circle img-responsive img-center" src="{{url_for("static", filename="images/AayushBhutani.jpg")}}" alt="">
+                <img class="img-circle img-responsive img-center"
+                src="{{url_for("static", filename="images/AayushBhutani.jpg")}}"
+                alt="Aayush">
                 <h4>Aayush Bhutani</h4>
             </div>
         </div>
@@ -89,12 +93,4 @@ A game of taking the <strong>Right Pictures</strong> at the
         </div>
     </div>
 </section>
-{# <ul class="nav nav-pills">
-    <li role="presentation">
-        <a href="{{ url_for('.login') }}">Log In</a>
-    </li>
-    <li role="presentation">
-        <a href="{{ url_for('.register') }}">Register</a>
-    </li>
-</ul> #}
 {% endblock %}
