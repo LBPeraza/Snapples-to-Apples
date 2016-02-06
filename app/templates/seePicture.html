@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}View{% endblock %}
+
+{% block links %}
+{{ macros.navlink("Home", url_for(".index")) }}
+{% endblock %}
+
+{% block pagename %}View Your Picture{% endblock %}
+
+{% block body %}
+<img src="" id="picture">
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    var dataImage = localStorage.getItem('imgData');
+    document.getElementById('picture').src = "data:image/png;base64," + dataImage;
+
+}, false)
+</script>
+{% endblock %}

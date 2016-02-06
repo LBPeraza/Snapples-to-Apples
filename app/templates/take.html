@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Take a Picture{% endblock %}
+
+{% block links %}
+{{ macros.navlink("Home", url_for(".index")) }}
+{% endblock %}
+
+{% block pagename %}Take a Picture{% endblock %}
+
+{% block body %}
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="snap">Snap!</button>
+    <form method='POST' action='/seePicture/'>
+    {{form.hidden_tag()}}
+        <input type="hidden" id="picture" name="picture">
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+    <canvas id="canvas" width="640" height="480"></canvas>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.addEventListener("DOMContentLoaded", function() {
+    var canvas = document.getElementById("canvas"),
+    context = canvas.getContext("2d"),
+    video = document.getElementById("video"),
+    videoObj = {"video": true},
+    errBack = function(error) {
+    console.log("Video capture error: ", error.code);
+    };
+
+    if(navigator.getUserMedia) { // Standard
+        navigator.getUserMedia(videoObj, function(stream) {
+            video.src = stream;
+            video.play();
+        }, errBack);
+    } else if(navigator.webkitGetUserMedia) { // WebKit-prefixed
+        navigator.webkitGetUserMedia(videoObj, function(stream){
+            video.src = window.webkitURL.createObjectURL(stream);
+            video.play();
+        }, errBack);
+    }
+    else if(navigator.mozGetUserMedia) { // Firefox-prefixed
+        navigator.mozGetUserMedia(videoObj, function(stream){
+            video.src = window.URL.createObjectURL(stream);
+            video.play();
+        }, errBack);
+    }
+
+    function convertCanvasToImage(canvas) {
+        var image = new Image();
+        image.src = canvas.toDataURL("image/png");
+        var dataURL = canvas.toDataURL("image/png");
+        return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+    }
+
+    document.getElementById("snap").addEventListener("click", function() { 
+        context.drawImage(video, 0, 0, 640, 480);
+        dataURL = convertCanvasToImage(canvas)
+        document.getElementById('picture').value = dataURL;
+        localStorage.setItem('imgData', dataURL);
+        var dataImage = localStorage.getItem('imgData');
+    });
+
+}, false)
+</script>
+{% endblock %}

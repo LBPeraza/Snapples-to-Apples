@@ -67,6 +67,7 @@ Try joining someone else, or create your own match!
             </div>
             <div class="col-md-8 col-md-offset-2">
                 <form method="POST" action="{{ url_for(".createGame") }}">
+                {{form.hidden_tag()}}
                     <div class="form-group">
                         {{ form.maxPlayers.label }}
                         {{ form.maxPlayers(

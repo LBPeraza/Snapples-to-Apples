@@ -1,16 +1,19 @@
 from flask_wtf import Form
 from wtforms import (BooleanField, TextField, PasswordField, validators,
-                     IntegerField)
+                     IntegerField, HiddenField)
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask.ext.uploads import UploadSet, IMAGES
 
 images = UploadSet('images', IMAGES)
 
+class TakeForm(Form):
+    picture = HiddenField()
+
 class PictureForm(Form):
-    picture = FileField('Your picture', [
-        FileRequired(),
-        FileAllowed(['jpg', 'png', 'jpeg'], 'Just Images!')
-    ])
+    picture = HiddenField()
+
+class SeePictureForm(Form):
+    picture = HiddenField()
 
 class RegistrationForm(Form):
     username = TextField('Username', [validators.Length(min=4, max=25)])

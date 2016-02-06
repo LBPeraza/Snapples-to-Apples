@@ -79,7 +79,25 @@ def gamePage(user, game):
                                username=session['user-info']['username'],
                                users=users,
                                isHost=game.host_id == user.id)
-    
+@mod.route('seePicture/', methods=['GET', 'POST'])
+def seePicture():
+    form = SeePictureForm(request.form)
+    return render_template('seePicture.html', form=form)
+
+@mod.route('take/', methods=['GET', 'POST'])
+def take():
+    form = TakeForm(request.form)
+    if request.method == 'POST' and form.validate():
+        #get the picture and do stuff with it
+        print(len(form.picture.data))
+        picture = Picture()
+        picture.data = form.picture.data.encode('utf-8')
+        db.session.add(picture)
+        db.session.commit()
+        flash('Success! Picture id: %d' % picture.id, 'success')
+        return redirect(url_for('.seePicture'))
+    flashErrors(form)
+    return render_template('take.html', form=form)
 
 @mod.route('login/', methods=['GET', 'POST'])
 def login():
