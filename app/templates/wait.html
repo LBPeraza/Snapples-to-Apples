@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Round {{ round }}{% endblock %}
+
+{% block links %}
+    {{ macros.navlink("Log Out", url_for(".logout")) }}
+{% endblock %}
+
+{% block pagename %}Round {{ round }} - {{ word }}{% endblock %}
+
+{% block body %}
+{{picker}} is deciding the winner!
+Here's your submission:
+<img src="view/{{picture}}">
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+{% endblock %}

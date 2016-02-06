@@ -11,6 +11,7 @@
 {% endblock %}
 
 {% block links %}
+{{ macros.navlink("Scoreboard", url_for(".scoreboard")) }}
 {{ macros.navlink("Join Game", "#join") }}
 {{ macros.navlink("Create Game", "#create") }}
 {{ macros.navlink("Log Out", url_for(".logout")) }}

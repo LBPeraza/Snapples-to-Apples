@@ -16,4 +16,8 @@ $(document).ready(function() {
         window.location.reload();
     });
 
+    socket.on('anything', function() {
+        window.location.reload();
+    });
+
 });

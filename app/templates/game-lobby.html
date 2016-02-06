@@ -3,6 +3,7 @@
 {% block title %}Lobby{% endblock %}
 
 {% block links %}
+    {{ macros.navlink("Scoreboard", url_for(".scoreboard")) }}
     {{ macros.navlink("Players", "#players") }}
     {{ macros.navlink("Game Config", "#gameinfo") }}
     {% if isHost %}
@@ -65,12 +66,6 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                <form method='POST' action="/pickaword/">
-                    {{form.hidden_tag()}}
-                    {% if isHost %}
-                        <button type="submit" class="btn btn-default">Start the Game</button>
-                    {% endif %}
-                </form>
             </div>
         </div>
     </div>
@@ -84,7 +79,7 @@
                 <hr class="star-light"></hr>
             </div>
             <div class="col-md-3 col-md-offset-3 text-center">
-                <a href="{{ url_for(".startGame") }}"
+                <a href="{{ url_for(".beginGame") }}"
                    class="btn btn-lg btn-outline">
                     Start Game
                 </a>
@@ -125,5 +120,5 @@
 
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
-<script src="{{ url_for("static", filename="js/game-lobby.js") }}"></script>
+<script src="{{ url_for("static", filename="js/game.js") }}"></script>
 {% endblock %}

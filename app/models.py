@@ -8,6 +8,8 @@ class User(db.Model):
     _password = db.Column(db.String(128), nullable=False)
     experience = db.Column(db.Integer, default=0)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    current_streak = db.Column(db.Integer, default=0)
+    best_streak = db.Column(db.Integer, default=0)
 
     @hybrid_property
     def password(self):
@@ -53,8 +55,15 @@ class Game(db.Model):
     )
     in_progress = db.Column(db.Boolean, default=False)
 
+    def __repr__(self):
+        return '<Game %d>' % self.id
+
 
 class Picture(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     data = db.Column(db.LargeBinary)
+    user_id = db.Column(db.Integer)
+
+    def __repr__(self):
+        return '<Picture %d>' % self.id

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Scoreboard{% endblock %}
+
+{% block pagename %}Scoreboard{% endblock %}
+{% block subname %}
+<strong>Compare</strong> yourself to other players!
+{% endblock %}
+
+{% block links %}
+    {{ macros.navlink("Home", url_for(".index")) }}
+    {{ macros.navlink("Log Out", url_for(".logout")) }}
+{% endblock %}
+
+{% block body %}
+<section>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Experience</th>
+                            <th>Best Streak</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.experience }}</td>
+                            <td>{{ user.best_streak }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

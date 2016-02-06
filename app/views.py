@@ -5,6 +5,7 @@ import time
 from flask import Blueprint, render_template, abort, flash, send_file, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from sqlalchemy import desc
 
 from config import ADMINS
 from app import app, db, socketio
@@ -40,7 +41,7 @@ admin.add_view(AuthAdminView(Game))
 admin.add_view(AuthAdminView(Picture))
 
 
-@mod.route('/')
+@mod.route('/', methods=['GET', 'POST'])
 def index():
     if isLoggedIn():
         return loggedInPage()
@@ -72,7 +73,7 @@ def loggedInPage():
 
 def gamePage(user, game):
     if game.in_progress:
-        abort(501)
+        return gamePlay(user, game)
     else:
         users = getPlayerOrder(game)
         form = GameForm()
@@ -82,8 +83,77 @@ def gamePage(user, game):
                                isHost=game.host_id == user.id,
                                form=form)
 
+def gamePlay(user, game):
+    if game.current_round > game.rounds: #game is over
+        return gameOver(user, game)
+    elif game.phrase == "" or game.phrase == None:
+        return pickingPhase(user, game)
+    else:
+        picker_id = game.current_player
+        if picker_id == user.id:
+            return selectingPhase(user, game)
+        else:
+            return uploadingPhase(user, game)
 
-@mod.route('beginGame', methods=['GET'])
+def myKey(user):
+    return user.experience
+
+def gameOver(user, game):
+    form = GameOverForm(request.form)
+    users = game.users.order_by(desc(User.experience))
+    return render_template('gameOver.html', form=form, users=users)
+
+@mod.route('endGame/', methods=['GET', 'POST'])
+@loginRequired
+def endGame():
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    game = user.game
+    if game is None:
+        flash('You\'re not in a game!', 'warning')
+        return redirect(url_for('.index'))
+    user.game_id = None
+    game.users.remove(user)
+    if game.users.count() == 0:
+        game.in_progress = False
+        db.session.delete(game)
+    db.session.commit()
+    socketio.emit('anything', broadcast=True)
+    return redirect(url_for('.index'))
+
+
+def pickingPhase(user, game):
+    form = PickAWordForm(request.form)
+    words = getWord(adjs, 5)
+    picker_id = game.current_player
+    picker = User.query.filter_by(id=picker_id).first()
+    socketio.emit('anything', broadcast=True)
+    return render_template('pickaword.html', form=form, 
+        isPicker=picker_id == user.id, words=words, picker=picker.username,
+        game_round=game.current_round)
+
+def selectingPhase(user, game):
+    form = PlayGameForm(request.form)
+    socketio.emit('anything', broadcast=True)
+    return render_template('playGame.html', form=form, word=game.phrase,
+        round=game.current_round, pictures=game.pictures)
+
+def uploadingPhase(user, game):
+    picture = Picture.query.filter_by(user_id=user.id).first()
+    picker_id = game.current_player
+    picker = User.query.filter_by(id=picker_id).first()
+    socketio.emit('anything', broadcast=True)
+    if picture == None:
+        form = TakeForm(request.form)
+        return render_template('take.html', form=form, word=game.phrase,
+            round=game.current_round, picker=picker.username)
+    else:
+        form = WaitForm(request.form)
+        return render_template('wait.html', picker=picker.username, 
+            picture=picture.id, round=game.current_round,
+            word=game.phrase)
+
+
+@mod.route('beginGame/', methods=['GET', 'POST'])
 @loginRequired
 def beginGame():
     user = User.query.filter_by(id=session['user-info']['id']).first()
@@ -93,28 +163,12 @@ def beginGame():
         flash('You\'re not in a game', 'warning')
         return redirect(url_for('.index'))
     game.in_progress = True
-    game.current_round = 1
+    game.current_round = 0
+    users = getPlayerOrder(game)
+    game.current_player = users[0].id
     db.session.commit()
-    return redirect(url_for('.pickaword'))
-
-@mod.route('pickaword/', methods=['GET', 'POST'])
-@loginRequired
-def pickaword():
-    form = PickAWordForm(request.form)
-    words = getWord(adjs, 5)
-    user = User.query.filter_by(id=session['user-info']['id']).first()
-    assert(user is not None)
-    game = user.game
-    if game is None:
-        flash('You\'re not in a game!', 'warning')
-        return redirect(url_for('.index'))
-    db.session.commit()
-    picker_id = game.current_player
-    print(picker_id)
-    picker = User.query.filter_by(id=picker_id).first()
-    return render_template('pickaword.html', form=form, 
-        isPicker=picker_id == user.id, words=words, picker=picker.username,
-        game_round=game.current_round)
+    socketio.emit('anything', broadcast=True)
+    return redirect(url_for('.index'))
 
 @mod.route('pick/<word>', methods=['GET'])
 @loginRequired
@@ -125,45 +179,66 @@ def pick(word):
         flash('You\'re not in a game!', 'warning')
         return redirect(url_for('.index'))
     game.phrase = word
+    socketio.emit('anything', broadcast=True)
     db.session.commit()
-    return redirect(url_for('.playGame'))
+    return redirect(url_for('.index'))
 
-
-@mod.route('playGame/', methods=['GET', 'POST'])
+@mod.route('take/', methods=['GET', 'POST'])
 @loginRequired
-def playGame():
-    form = PlayGameForm(request.form)
+def take():
+    form = PictureForm()
+    if request.method == 'POST' and form.validate():
+        #get the picture and do stuff with it
+        user = User.query.filter_by(id=session['user-info']['id']).first()
+        game = user.game
+        if game is None:
+            flash('You\'re not in a game!', 'warning')
+            return redirect(url_for('.index'))
+        picture = Picture()
+        picture.data = form.picture.data.read()
+        picture.user_id = session['user-info']['id']
+        db.session.add(picture)
+        game.pictures.append(picture)
+        db.session.commit()
+        socketio.emit('anything', broadcast=True)
+        return 'Success'
+    flashErrors(form)
+    return render_template('take.html', form=form)
+
+@mod.route('winner/<picture>', methods=['GET'])
+@loginRequired
+def winner(picture):
     user = User.query.filter_by(id=session['user-info']['id']).first()
     game = user.game
     if game is None:
         flash('You\'re not in a game!', 'warning')
         return redirect(url_for('.index'))
-    current_word = game.phrase
-    current_round = game.current_round
-    picker_id = game.current_player
-    return render_template('playGame.html', form=form, word=current_word,
-        round=current_round, isPicker=picker_id==user.id)
+    if game.current_player != user.id:
+        flash('You\'re not the current picker!', 'warning')
+        return redirect(url_for('.index'))
+    game.current_round += 1
+    pic = Picture.query.filter_by(id=picture).first()
+    playerWinner = game.users.filter_by(id=pic.user_id).first()
+    playerWinner.current_streak += 1
+    playerWinner.experience += playerWinner.current_streak
+    playerWinner.best_streak = max(playerWinner.current_streak,
+            playerWinner.best_streak)
+    for player in game.users:
+        if player != playerWinner and player != user:
+            player.current_streak = 0
 
-
-@mod.route('seePicture/', methods=['GET', 'POST'])
-def seePicture():
-    form = SeePictureForm(request.form)
-    return render_template('seePicture.html', form=form)
-
-
-@mod.route('take/', methods=['GET', 'POST'])
-def take():
-    form = PictureForm()
-    if request.method == 'POST' and form.validate():
-        #get the picture and do stuff with it
-        picture = Picture()
-        picture.data = form.picture.data.read()
-        db.session.add(picture)
-        db.session.commit()
-        flash('Success! Picture id: %d' % picture.id, 'success')
-        return 'Success'
-    flashErrors(form)
-    return render_template('take.html', form=form)
+    if game.current_round <= game.rounds:
+        #go on to next round
+        game.phrase = ""
+        for picture in game.pictures:
+            picture.game_id = None
+            db.session.delete(picture)
+        users = getPlayerOrder(game)
+        game.current_player = users[game.current_round % len(users)].id
+    flash('%s was the winner!' % playerWinner.username, 'success')
+    socketio.emit('anything', broadcast=True)
+    db.session.commit()
+    return redirect(url_for('.index'))
 
 
 @mod.route('login/', methods=['GET', 'POST'])
@@ -226,6 +301,7 @@ def createGame():
         db.session.commit()
         return redirect(url_for('.index'))
     flashErrors(form)
+    socketio.emit('anything', broadcast=True)
     return render_template('create.html', form=form)
 
 
@@ -255,6 +331,7 @@ def leaveGame():
         flash('You aren\'t in a game!', 'warning')
         return redirect(url_for('.index'))
     user.game = None
+    socketio.emit('anything', broadcast=True)
     db.session.commit()
     return redirect(url_for('.index'))
 
@@ -276,6 +353,7 @@ def kick(id):
               'success')
     else:
         flash('That user isn\'t in your match!', 'warning')
+    socketio.emit('anything', broadcast=True)
     return redirect(url_for('.index'))
 
 
@@ -299,6 +377,7 @@ def host(id):
         game.host_id = hostee.id
         db.session.commit()
         socketio.emit('made host', user.username, room=hostee.username)
+        socketio.emit('anything', broadcast=True)
         flash('Successfully made %s the host!' % hostee.username,
               'success')
     else:
@@ -313,15 +392,20 @@ def becomeHost(host):
     return redirect(url_for('.index'))
 
 
-@mod.route('startGame/', methods=['GET'])
-@loginRequired
-def startGame():
-    return redirect(url_for('.index'))
-
-
 @mod.route('closeGame/', methods=['GET'])
 @loginRequired
 def closeGame():
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    if user is None:
+        session.clear()
+        return redirect(url_for('.index'))
+    game = user.game
+    if game is None or game.host_id != user.id:
+        flash("You can't close a game!", "warning")
+        return redirect(url_for('.index'))
+    db.session.delete(game)
+    db.session.commit()
+    socketio.emit('anything', broadcast=True)
     return redirect(url_for('.index'))
 
 
@@ -334,6 +418,7 @@ def uploadPicture():
         picture.data = form.picture.data.read()
         db.session.add(picture)
         db.session.commit()
+        socketio.emit('anything', broadcast=True)
         flash('Success! Picture id: %d' % picture.id, 'success')
         return 'Success'
     else:
@@ -352,6 +437,23 @@ def viewPicture(picID):
         abort(404)
     print(len(picture.data))
     return send_file(io.BytesIO(picture.data))
+
+
+@mod.route('scoreboard', methods=['GET'])
+@loginRequired
+def scoreboard():
+    sort = request.args.get('sortby')
+    if sort is None or sort.lower() == 'exp':
+        users = User.query.order_by(desc(User.experience)).all()
+    elif sort.lower() == 'str':
+        users = User.query.order_by(desc(User.best_streak)).all()
+    else:
+        abort(404)
+
+    return render_template('scoreboard.html', 
+            users=users,
+            me=session['user-info']['id']
+        )
 
 
 @mod.route('look/<picID>', methods=['GET'])
