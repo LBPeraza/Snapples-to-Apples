@@ -11,10 +11,47 @@
 {% block body %}
     <video id="video" width="640" height="480" autoplay></video>
     <button id="snap">Snap!</button>
+
+ <font color="red">  <h2>SNAP AND CLICK ON SUBMIT WHEN DONE!!!</h2></font>
+ <ul class="nav nav-pills">
+  <li role="presentation" class="active"><a href="#">Snap</a></li>
+  <li role="presentation" class="active"><a href="#">Submit</a></li>
+</ul>
+<div class='row'>
+            <div class="col-sm-4">
+                <font color="red"> <h2>PICK</h2> </font>
+            </div>
+                <div class="col-sm-4">
+                <font color="red"> <h2>MOST INTERESTING</h2> </font>
+            </div>
+            <div class="col-sm-4">
+                <font color="red"> <h2>COOLEST</h2> </font>
+            </div>
+            </div>
+    <div class='row'>
+            <div class="col-sm-4">
+                <font color="red"> <h2>FUNNY</h2> </font>
+            </div>
+                <div class="col-sm-4">
+                <font color="red"> <h2>BE CREATIVE</h2> </font>
+            </div>
+            <div class="col-sm-4">
+                <font color="red"> <h2>RANDOM PICTURES</h2> </font>
+            </div>
+            </div>
+        <div class='row'>
+            <div class="col-sm-4">
+                <font color="red"> <h2>IMAGINE</h2> </font>
+            </div>
+                        <div class="col-sm-4">
+                <font color="red"> <h2>SOCIALIZE</h2> </font>
+            </div>
+
+
     <form method='POST' id="picForm">
         {{ form.hidden_tag() }}
         <input type="hidden" id="picture" name="picture">
-        <button type="submit" class="btn btn-default">Submit</button>
+        <button type="submit" class="active">Submit</button>
     </form>
     <canvas id="canvas" width="640" height="480"></canvas>
 {% endblock %}
