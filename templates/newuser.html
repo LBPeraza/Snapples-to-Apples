@@ -1,6 +1,8 @@
-<html>
-<body>
+{% extends "base.html" %}
 
+{% block title %}Register{% endblock %}
+
+{% block body %}
  <div class="input-group">
   <input type="text" class="form-control" placeholder="Username" aria-describedby="basic-addon2">
   <span class="input-group-addon" id="basic-addon2">@example.com</span>
@@ -16,8 +18,5 @@
 
      <button class="btn btn-lg btn-primary btn-block" type="submit"><a href="{{url_for('.play')}}">Sign up</a></button>
 
-       
  </div>     
-</body>
-</html>
-
+{% endblock %}

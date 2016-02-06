@@ -4,7 +4,7 @@ import hashlib
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(20), nullable=False)
+    username = db.Column(db.String(20), nullable=False)
     _password = db.Column(db.String(128), nullable=False)
     experience = db.Column(db.Integer, default=0)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
@@ -20,7 +20,7 @@ class User(db.Model):
         self._password = m.digest()
 
     def __init__(self, username, password):
-        self.name = username
+        self.username = username
         self.password = password
         self.experience = 0
 
@@ -34,7 +34,7 @@ class Game(db.Model):
     phrase = db.Column(db.String(50))
     users = db.relationship(
         'User',
-        backref=db.backref('ugame', lazy='joined'),
+        backref=db.backref('game', lazy='joined'),
         lazy='dynamic'
     )
     host_id = db.Column(db.Integer, nullable=False)
@@ -44,7 +44,7 @@ class Game(db.Model):
     current_player = db.Column(db.Integer)
     pictures = db.relationship(
         'Picture',
-        backref=db.backref('pgame', lazy='joined'),
+        backref=db.backref('game', lazy='joined'),
         lazy='dynamic'
     )
 

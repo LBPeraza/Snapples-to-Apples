@@ -6,7 +6,7 @@ from flask.ext.uploads import UploadSet, IMAGES
 images = UploadSet('images', IMAGES)
 
 class PictureForm(Form):
-    picture = FileField('picture', [
+    picture = FileField('Your picture', [
         FileRequired(),
         FileAllowed(['jpg', 'png', 'jpeg'], 'Just Images!')
     ])

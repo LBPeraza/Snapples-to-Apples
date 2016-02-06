@@ -5,13 +5,12 @@
 {% block body %}
 Welcome to Snapples to Apples!
 
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul class="list-group">
-            {% for message in messages %}
-            <li class="list-group-item">{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-{% endwith %}
+<ul class="nav nav-pills">
+    <li role="presentation">
+        <a href="{{ url_for('.login') }}">Log In</a>
+    </li>
+    <li role="presentation">
+        <a href="{{ url_for('.register') }}">Register</a>
+    </li>
+</ul>
 {% endblock %}

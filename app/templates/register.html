@@ -1,0 +1,28 @@
+
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+<form method="POST">
+    {{ form.hidden_tag() }}
+ <div class="form-group">
+     {{ form.username.label }}
+     {{ form.username(size=20, placeholder='Username', class="form-control") }}
+</div>
+
+<div class="form-group">
+    {{ form.password.label }}
+    {{ form.password(size=20, placeholder='Password', class="form-control") }}
+</div>
+
+<div class="form-group">
+    {{ form.confirm.label }}
+    {{ form.confirm(size=20, placeholder='Confirm Password', class="form-control") }}
+</div>
+
+
+     <button class="btn btn-lg btn-default" type="submit"><a
+             href="{{url_for('.index')}}">Sign up</a></button>
+</form>
+{% endblock %}
