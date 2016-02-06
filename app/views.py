@@ -147,6 +147,7 @@ def take():
             return redirect(url_for('.index'))
         picture = Picture()
         picture.data = form.picture.data.read()
+        picture.user_id = session['user-info']['id']
         db.session.add(picture)
         game.pictures.append(picture)
         db.session.commit()
@@ -163,16 +164,31 @@ def winner(picture):
     if game is None:
         flash('You\'re not in a game!', 'warning')
         return redirect(url_for('.index'))
+    if game.current_player != user:
+        flash('You\'re not the current picker!', 'warning')
+        return redirect(url_for('.index'))
     game.current_round += 1
+    pic = Picture.query.filter_by(id=picture)
+    playerWinner = game.users.filter_by(id=pic.user_id).first()
+    playerWinner.current_streak += 1
+    playerWinner.experience += playerWinner.current_streak
+    playerWinner.best_streak = max(playerWinner.current_streak,
+            playerWinner.best_streak)
+    for player in game.users:
+        if player != playerWinner and player != user:
+            player.current_streak = 0
+
     if game.current_round > game.rounds:
         #game over
         game.in_progress = False
     else:
         #go on to next round
         game.phrase = ""
-        game.pictures = []
+        for picture in game.pictures:
+            picture.game_id = None
+            db.session.delete(picture)
         users = getPlayerOrder(game)
-        game.current_player = users[game.current_round % len(users)]
+        game.current_player = users[game.current_round % len(users)].id
     db.session.commit()
     return redirect(url_for('.index'))
 
