@@ -25,7 +25,9 @@ class User(db.Model):
         self.experience = 0
 
     def is_correct_password(self, plaintext):
-        return bcrypt.check_password_hash(self._password, plaintext)
+        m = hashlib.sha512()
+        m.update(plaintext.encode())
+        return m.digest() == self.password
 
 class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
