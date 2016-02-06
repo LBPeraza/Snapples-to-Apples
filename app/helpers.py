@@ -4,6 +4,8 @@ from flask import (session, url_for, render_template, flash, redirect,
 from functools import wraps, update_wrapper
 from datetime import datetime
 
+from app.models import *
+
 
 def flashErrors(form):
     for field, errors in form.errors.items():
@@ -51,6 +53,12 @@ def nocache(view):
 def isLoggedIn():
     info = session.get('user-info')
     return (info is not None)
+
+def getPlayerOrder(game):
+    users = game.users.order_by(User.username).all()
+    random.seed(game.order_seed)
+    random.shuffle(users)
+    return users
 
 ### Dictionary helpers
 def initializeAdjDict():

@@ -72,17 +72,14 @@ def gamePage(user, game):
     if game.in_progress:
         abort(501)
     else:
-        users = game.users.order_by(User.username).all()
-        random.seed(game.order_seed)
-        random.shuffle(users)
+        users = getPlayerOrder(game)
+        form = GameForm()
         return render_template('game-lobby.html',
                                username=session['user-info']['username'],
                                users=users,
-                               isHost=game.host_id == user.id)
-@mod.route('seePicture/', methods=['GET', 'POST'])
-def seePicture():
-    form = SeePictureForm(request.form)
-    return render_template('seePicture.html', form=form)
+                               isHost=game.host_id == user.id,
+                               form=form)
+
 
 @mod.route('take/', methods=['GET', 'POST'])
 def take():
@@ -241,6 +238,18 @@ def host(id):
 @loginRequired
 def becomeHost(host):
     flash('%s made you host of their game!' % host, 'info')
+    return redirect(url_for('.index'))
+
+
+@mod.route('startGame/', methods=['GET'])
+@loginRequired
+def startGame():
+    return redirect(url_for('.index'))
+
+
+@mod.route('closeGame/', methods=['GET'])
+@loginRequired
+def closeGame():
     return redirect(url_for('.index'))
 
 
