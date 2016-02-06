@@ -1,7 +1,5 @@
 $(document).ready(function() {
 
-    
-
     var socket = io.connect(
         'http://' + document.domain + ':' + location.port + '/'
     );
@@ -15,6 +13,10 @@ $(document).ready(function() {
     });
 
     socket.on('player joined', function() {
+        window.location.reload();
+    });
+
+    socket.on('anything', function() {
         window.location.reload();
     });
 

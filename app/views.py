@@ -100,9 +100,7 @@ def myKey(user):
 
 def gameOver(user, game):
     form = GameOverForm(request.form)
-    users = game.users
-    users = sorted(users, key=myKey)
-    db.session.commit()
+    users = game.users.order_by(desc(User.experience))
     return render_template('gameOver.html', form=form, users=users)
 
 @mod.route('endGame/', methods=['GET', 'POST'])
@@ -119,6 +117,7 @@ def endGame():
         game.in_progress = False
         db.session.delete(game)
     db.session.commit()
+    socketio.emit('anything', broadcast=True)
     return redirect(url_for('.index'))
 
 
@@ -127,12 +126,14 @@ def pickingPhase(user, game):
     words = getWord(adjs, 5)
     picker_id = game.current_player
     picker = User.query.filter_by(id=picker_id).first()
+    socketio.emit('anything', broadcast=True)
     return render_template('pickaword.html', form=form, 
         isPicker=picker_id == user.id, words=words, picker=picker.username,
         game_round=game.current_round)
 
 def selectingPhase(user, game):
     form = PlayGameForm(request.form)
+    socketio.emit('anything', broadcast=True)
     return render_template('playGame.html', form=form, word=game.phrase,
         round=game.current_round, pictures=game.pictures)
 
@@ -140,6 +141,7 @@ def uploadingPhase(user, game):
     picture = Picture.query.filter_by(user_id=user.id).first()
     picker_id = game.current_player
     picker = User.query.filter_by(id=picker_id).first()
+    socketio.emit('anything', broadcast=True)
     if picture == None:
         form = TakeForm(request.form)
         return render_template('take.html', form=form, word=game.phrase,
@@ -165,6 +167,7 @@ def beginGame():
     users = getPlayerOrder(game)
     game.current_player = users[0].id
     db.session.commit()
+    socketio.emit('anything', broadcast=True)
     return redirect(url_for('.index'))
 
 @mod.route('pick/<word>', methods=['GET'])
@@ -176,6 +179,7 @@ def pick(word):
         flash('You\'re not in a game!', 'warning')
         return redirect(url_for('.index'))
     game.phrase = word
+    socketio.emit('anything', broadcast=True)
     db.session.commit()
     return redirect(url_for('.index'))
 
@@ -196,6 +200,7 @@ def take():
         db.session.add(picture)
         game.pictures.append(picture)
         db.session.commit()
+        socketio.emit('anything', broadcast=True)
         return 'Success'
     flashErrors(form)
     return render_template('take.html', form=form)
@@ -231,6 +236,7 @@ def winner(picture):
         users = getPlayerOrder(game)
         game.current_player = users[game.current_round % len(users)].id
     flash('%s was the winner!' % playerWinner.username, 'success')
+    socketio.emit('anything', broadcast=True)
     db.session.commit()
     return redirect(url_for('.index'))
 
@@ -295,6 +301,7 @@ def createGame():
         db.session.commit()
         return redirect(url_for('.index'))
     flashErrors(form)
+    socketio.emit('anything', broadcast=True)
     return render_template('create.html', form=form)
 
 
@@ -324,6 +331,7 @@ def leaveGame():
         flash('You aren\'t in a game!', 'warning')
         return redirect(url_for('.index'))
     user.game = None
+    socketio.emit('anything', broadcast=True)
     db.session.commit()
     return redirect(url_for('.index'))
 
@@ -345,6 +353,7 @@ def kick(id):
               'success')
     else:
         flash('That user isn\'t in your match!', 'warning')
+    socketio.emit('anything', broadcast=True)
     return redirect(url_for('.index'))
 
 
@@ -368,6 +377,7 @@ def host(id):
         game.host_id = hostee.id
         db.session.commit()
         socketio.emit('made host', user.username, room=hostee.username)
+        socketio.emit('anything', broadcast=True)
         flash('Successfully made %s the host!' % hostee.username,
               'success')
     else:
@@ -382,15 +392,20 @@ def becomeHost(host):
     return redirect(url_for('.index'))
 
 
-@mod.route('startGame/', methods=['GET'])
-@loginRequired
-def startGame():
-    return redirect(url_for('.index'))
-
-
 @mod.route('closeGame/', methods=['GET'])
 @loginRequired
 def closeGame():
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    if user is None:
+        session.clear()
+        return redirect(url_for('.index'))
+    game = user.game
+    if game is None or game.host_id != user.id:
+        flash("You can't close a game!", "warning")
+        return redirect(url_for('.index'))
+    db.session.delete(game)
+    db.session.commit()
+    socketio.emit('anything', broadcast=True)
     return redirect(url_for('.index'))
 
 
@@ -403,6 +418,7 @@ def uploadPicture():
         picture.data = form.picture.data.read()
         db.session.add(picture)
         db.session.commit()
+        socketio.emit('anything', broadcast=True)
         flash('Success! Picture id: %d' % picture.id, 'success')
         return 'Success'
     else:
