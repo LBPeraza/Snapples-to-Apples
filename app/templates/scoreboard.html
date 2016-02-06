@@ -7,6 +7,11 @@
 <strong>Compare</strong> yourself to other players!
 {% endblock %}
 
+{% block links %}
+    {{ macros.navlink("Home", url_for(".index")) }}
+    {{ macros.navlink("Log Out", url_for(".logout")) }}
+{% endblock %}
+
 {% block body %}
 <section>
     <div class="container">

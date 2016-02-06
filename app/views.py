@@ -5,6 +5,7 @@ import time
 from flask import Blueprint, render_template, abort, flash, send_file, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from sqlalchemy import desc
 
 from config import ADMINS
 from app import app, db, socketio
@@ -427,13 +428,15 @@ def viewPicture(picID):
 def scoreboard():
     sort = request.args.get('sortby')
     if sort is None or sort.lower() == 'exp':
-        users = User.query.order_by(User.experience).all()
+        users = User.query.order_by(desc(User.experience)).all()
     elif sort.lower() == 'str':
-        users = User.query.order_by(User.best_streak).all()
+        users = User.query.order_by(desc(User.best_streak)).all()
+    else:
+        abort(404)
 
     return render_template('scoreboard.html', 
             users=users,
-            me=session['info']['id']
+            me=session['user-info']['id']
         )
 
 
