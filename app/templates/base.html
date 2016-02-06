@@ -25,6 +25,9 @@
             Snapples to Apples
             {% if pagename is defined %}
             <small>{{ pagename }}</small>
+            <ul class="nav nav-pills">
+            <li role="presentation" class="active"><a href="{{url_for('.login')}}">Login</a></li>
+            </ul>
             {% endif %}
         </h1>
         </div></div>
