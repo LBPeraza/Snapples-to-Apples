@@ -25,6 +25,15 @@ def loginRequired(f):
             return redirect(url_for('snapples.index'))
     return g
 
+def socketLoginRequired(f):
+    @wraps(f)
+    def g(*args, **kwargs):
+        if isLoggedIn():
+            return f(*args, **kwargs)
+        else:
+            emit('You have to be logged in to do that')
+    return g
+
 def nocache(view):
         @wraps(view)
         def no_cache(*args, **kwargs):

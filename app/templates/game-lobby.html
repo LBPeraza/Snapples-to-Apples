@@ -19,4 +19,55 @@
 {% endblock %}
 
 {% block body %}
+<section>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2>Players</h2>
+                <hr class="star-primary"></hr>
+            </div>
+            <div class="col-lg-8 col-lg-offset-2 text-center">
+                <table class="table table-striped">
+                    <thead>
+                        <tr class="text-center">
+                            <th class="text-center">Name</th>
+                            <th class="text-center">Experience</th>
+                            {% if isHost %}
+                                <th class="text-center">Kick</th>
+                                <th class="text-center">Make Host</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td style="vertical-align: middle;">{{ user.username }}</td>
+                            <td style="vertical-align: middle;">{{ user.experience }}</td>
+                            {% if isHost  %}
+                            <td style="vertical-align: middle;">
+                                {% if user.username != username %}
+                                    <a href="{{ url_for(".kick", id=user.id) }}"
+                                    class="btn btn-danger">Kick</a>
+                                {% endif %}
+                            </td>
+                            <td style="vertical-align: middle;">
+                                {% if user.username != username %}
+                                    <a href="{{ url_for(".host", id=user.id) }}"
+                                    class="btn btn-success">Make Host</a>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+<script src="{{ url_for("static", filename="js/game-lobby.js") }}"></script>
 {% endblock %}

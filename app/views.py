@@ -7,7 +7,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 
 from config import ADMINS
-from app import app, db
+from app import app, db, socketio
 from app.models import *
 from app.helpers import *
 from app.forms import *
@@ -76,6 +76,7 @@ def gamePage(user, game):
         random.seed(game.order_seed)
         random.shuffle(users)
         return render_template('game-lobby.html',
+                               username=session['user-info']['username'],
                                users=users,
                                isHost=game.host_id == user.id)
     
@@ -88,10 +89,14 @@ def login():
     form = UsernamePasswordForm(request.form)
     if request.method == 'POST' and form.validate():
         #try to log them in
+        print(1)
         user = User.query.filter_by(username=form.username.data).first()
+        print(2)
         if user is None:
+            print(3)
             flash('User not found', 'danger')
         elif user.is_correct_password(form.password.data):
+            print(4)
             #log in the user
             userInfo = dict()
             userInfo['username'] = user.username
@@ -131,7 +136,7 @@ def createGame():
         id = session['user-info']['id']
         game.host_id = id
         host = User.query.filter_by(id=id).first()
-        host.game_id = game.id
+        game.users.append(host)
         random.seed(time.time())
         game.order_seed = random.randint(-0xffffffff, 0xffffffff)
         game.rounds = form.numRounds.data
@@ -153,6 +158,8 @@ def joinGame(gameID):
     if user.game is not None:
         flash('You\'re already in a game!', 'warning')
         return redirect(url_for('.index'))
+    for other in game.users.all():
+        socketio.emit('player joined', room=other.username)
     user.game = game
     db.session.commit()
     return redirect(url_for('.index'))
@@ -167,6 +174,60 @@ def leaveGame():
         return redirect(url_for('.index'))
     user.game = None
     db.session.commit()
+    return redirect(url_for('.index'))
+
+
+@mod.route('kick/<id>', methods=['GET'])
+@loginRequired
+def kick(id):
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    game = user.game
+    if game is None or game.host_id != user.id:
+        flash('You\'re not hosting a game!', 'warning')
+        return redirect(url_for('.index'))
+    kickee = game.users.filter_by(id=id).first()
+    if kickee:
+        game.users.remove(kickee)
+        socketio.emit('kicked', user.username, room=kickee.username)
+        db.session.commit()
+        flash('Successfully kicked %s from your match!' % kickee.username,
+              'success')
+    else:
+        flash('That user isn\'t in your match!', 'warning')
+    return redirect(url_for('.index'))
+
+
+@mod.route('getKicked/<host>')
+@loginRequired
+def kicked(host):
+    flash('You were kicked from %s\'s game!' % host, 'danger')
+    return redirect(url_for('.index'))
+
+
+@mod.route('makehost/<id>', methods=['GET'])
+@loginRequired
+def host(id):
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    game = user.game
+    if game is None or game.host_id != user.id:
+        flash('You\'re not hosting a game!', 'warning')
+        return redirect(url_for('.index'))
+    hostee = game.users.filter_by(id=id).first()
+    if hostee:
+        game.host_id = hostee.id
+        db.session.commit()
+        socketio.emit('made host', user.username, room=hostee.username)
+        flash('Successfully made %s the host!' % hostee.username,
+              'success')
+    else:
+        flash('That user isn\'t in your match!', 'warning')
+    return redirect(url_for('.index'))
+
+
+@mod.route('becomeHost/<host>', methods=['GET'])
+@loginRequired
+def becomeHost(host):
+    flash('%s made you host of their game!' % host, 'info')
     return redirect(url_for('.index'))
 
 
