@@ -2,17 +2,33 @@
 
 {% block title %}Log In{% endblock %}
 
+{% block links %}
+{{ macros.navlink("Home", url_for(".index")) }}
+{% endblock %}
+
+{% block pagename %}Log-In{% endblock %}
+
 {% block body %}
-<form method="POST">
-    {{ form.hidden_tag() }}
-    <div class="form-group">
-        {{ form.username.label }}
-        {{ form.username(size=20, placeholder="Username", class="form-control") }}
+<section>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ form.username.label }}
+                        {{ form.username(size=20, placeholder="Username", class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.password.label }}
+                        {{ form.password(size=20, placeholder="Password", class="form-control") }}
+                    </div>
+                    <button type="submit" class="btn btn-lg btn-default">
+                        Log In
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        {{ form.password.label }}
-        {{ form.password(size=20, placeholder="Password", class="form-control") }}
-    </div>
-    <button type="submit" class="btn btn-default">Log In</button>
-</form>
+</section>
 {% endblock %}

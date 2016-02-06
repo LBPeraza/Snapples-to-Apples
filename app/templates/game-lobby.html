@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Lobby{% endblock %}
+
+{% block links %}
+    {{ macros.navlink("Log Out", url_for(".logout")) }}
+{% endblock %}
+
+{% block pagename %}Game Lobby{% endblock %}
+{% block subname %}
+{% if isHost %}
+    You're the host! <strong>Modify</strong> the game parameters,
+    <strong>Wait</strong> for more players, or <strong>Start</strong> the game
+    now!
+{% else %}
+    <strong>Wait</strong> for the host to start the game, or
+    <strong>Leave</strong> and find a different match!
+{% endif %}
+{% endblock %}
+
+{% block body %}
+{% endblock %}

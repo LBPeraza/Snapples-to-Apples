@@ -2,7 +2,15 @@
 
 {% block title %}501{% endblock %}
 
-{% block body %}
-<h1>501</h1>
-<h3>Not Implemented</h3>
+{% block links %}
+{{ macros.navlink("Home", url_for("snapples.index")) }}
+{% if loggedIn %}
+    {{ macros.navlink("Log Out", url_for("snapples.logout")) }}
+{% else %}
+    {{ macros.navlink("Log In", url_for("snapples.login")) }}
+    {{ macros.navlink("Register", url_for("snapples.register")) }}
+{% endif %}
 {% endblock %}
+
+{% block pagename %}501{% endblock %}
+{% block subname %}Not Implemented{% endblock %}

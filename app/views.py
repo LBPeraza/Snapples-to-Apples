@@ -1,4 +1,7 @@
 import io
+import random
+import time
+
 from flask import Blueprint, render_template, abort, flash, send_file, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -57,9 +60,25 @@ def loggedInPage():
             thisGame['host'] = host.username
             thisGame['playercount'] = g.users.count()
             games.append(thisGame)
-        return render_template('user-index.html', pagename='Home', games=games)
+        return render_template('user-index.html',
+                               pagename='Home',
+                               games=games,
+                               form=GameForm())
     else:
+        return gamePage(user, game)
+
+
+def gamePage(user, game):
+    if game.in_progress:
         abort(501)
+    else:
+        users = game.users.order_by(User.username).all()
+        random.seed(game.order_seed)
+        random.shuffle(users)
+        return render_template('game-lobby.html',
+                               users=users,
+                               isHost=game.host_id == user.id)
+    
 
 @mod.route('login/', methods=['GET', 'POST'])
 def login():
@@ -93,9 +112,34 @@ def register():
         db.session.add(user)
         db.session.commit()
         flash('Thanks for registering!', 'success')
+        userinfo = {}
+        userinfo['id'] = user.id
+        userinfo['username'] = user.username
+        session['user-info'] = userinfo
         return redirect(url_for('.index'))
     flashErrors(form)
     return render_template('register.html', form=form)
+
+
+@mod.route('create', methods=['GET', 'POST'])
+@loginRequired
+def createGame():
+    form = GameForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        game = Game()
+        game.max_players = form.maxPlayers.data
+        id = session['user-info']['id']
+        game.host_id = id
+        host = User.query.filter_by(id=id).first()
+        host.game_id = game.id
+        random.seed(time.time())
+        game.order_seed = random.randint(-0xffffffff, 0xffffffff)
+        game.rounds = form.numRounds.data
+        db.session.add(game)
+        db.session.commit()
+        return redirect(url_for('.index'))
+    flashErrors(form)
+    return render_template('create.html', form=form)
 
 
 @mod.route('join/<gameID>', methods=['GET'])
@@ -103,13 +147,25 @@ def register():
 def joinGame(gameID):
     game = Game.query.filter_by(id=gameID).first()
     if game is None:
-        flash('That game (%d) doesn\'t exist!' % gameID, 'danger')
+        flash('That game (%s) doesn\'t exist!' % gameID, 'danger')
         return redirect(url_for('.index'))
     user = User.query.filter_by(id=session['user-info']['id']).first()
     if user.game is not None:
         flash('You\'re already in a game!', 'warning')
         return redirect(url_for('.index'))
     user.game = game
+    db.session.commit()
+    return redirect(url_for('.index'))
+
+
+@mod.route('leave/', methods=['GET'])
+@loginRequired
+def leaveGame():
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    if user.game is None:
+        flash('You aren\'t in a game!', 'warning')
+        return redirect(url_for('.index'))
+    user.game = None
     db.session.commit()
     return redirect(url_for('.index'))
 

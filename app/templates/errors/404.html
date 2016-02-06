@@ -2,7 +2,15 @@
 
 {% block title %}404{% endblock %}
 
-{% block body %}
-<h1>404</h1>
-<h4>File not found</h4>
+{% block links %}
+{{ macros.navlink("Home", url_for("snapples.index")) }}
+{% if loggedIn %}
+    {{ macros.navlink("Log Out", url_for("snapples.logout")) }}
+{% else %}
+    {{ macros.navlink("Log In", url_for("snapples.login")) }}
+    {{ macros.navlink("Register", url_for("snapples.register")) }}
+{% endif %}
 {% endblock %}
+
+{% block pagename %}404{% endblock %}
+{% block subname %}File not found{% endblock %}

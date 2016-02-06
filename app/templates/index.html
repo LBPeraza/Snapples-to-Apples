@@ -2,15 +2,70 @@
 
 {% block title %}{% endblock %}
 
-{% block body %}
-Welcome to Snapples to Apples!
+{% block links %}
+{{ macros.navlink("About", "#about") }}
+{{ macros.navlink("Play", "#play") }}
+{{ macros.navlink("Us", "#us") }}
+{% endblock %}
 
-<ul class="nav nav-pills">
+{% block pagename %}Snapples to Apples{% endblock %}
+{% block subname %}
+A game of taking the <strong>Right Pictures</strong> at the
+<strong>Right Times</strong>.
+{% endblock %}
+
+{% block body %}
+<section id="about"><div class="container">
+    <div class="row">
+        <div class="col-lg-12 text-center">
+            <h2>About</h2>
+            <hr class="star-primary"></hr>
+        </div>
+    </div>
+</div></section>
+
+<section id="play" class="success"><div class="container">
+    <div class="row">
+        <div class="col-lg-12 text-center">
+            <h2>Play</h2>
+            <hr class="star-light"></hr>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12 text-center">
+            <a href="{{ url_for(".login") }}"
+                class="btn btn-lg btn-outline">
+                <i class="fa fa-user"></i>
+                Log In
+            </a>
+        </div>
+        <div class="col-lg-12 text-center">
+            <a href="{{ url_for(".register") }}"
+                class="btn btn-lg btn-outline">
+                <i class="fa fa-user-plus"></i>
+                Register
+            </a>
+        </div>
+    </div>
+</div></section>
+
+<section id="us">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2>Us</h2>
+                <hr class="star-primary"></hr>
+            </div>
+            
+        </div>
+    </div>
+</section>
+{# <ul class="nav nav-pills">
     <li role="presentation">
         <a href="{{ url_for('.login') }}">Log In</a>
     </li>
     <li role="presentation">
         <a href="{{ url_for('.register') }}">Register</a>
     </li>
-</ul>
+</ul> #}
 {% endblock %}

@@ -1,3 +1,4 @@
+{% import "macros.html" as macros %}
 <!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
@@ -7,29 +8,116 @@
     <title>Snapples: {% block title %}{% endblock %}</title>
 
     <link rel="stylesheet"
-          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
-          integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
-          crossorigin="anonymous" />
+          href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" />
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/freelancer.css') }}" />
 
-    <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
-            integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
-            crossorigin="anonymous"></script>
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"
+          />
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Montserrat:400,700" />
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic"
+          />
+
 
     {% block head %}{% endblock %}
 </head>
 
-<body>
-    <div class="page-header"><div class="container">
-        <h1>
-            Snapples to Apples
-            {% if pagename is defined %}
-            <small>{{ pagename }}</small>
-            {% endif %}
-        </h1>
-        </div></div>
-    <div class="container">
-        {% include "partials/flashes.html" %}
+<body id="page-top" class="index">
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header page-scroll">
+                <button type="button"
+                        class="navbar-toggle"
+                        data-toggle="collapse"
+                        data-target="#navbar-collapse">
+                    <span class="sr-only">Toggle Navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#page-top">Snapples to Apples</a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="hidden">
+                        <a href="#page-top"></a>
+                    </li>
+                    {% block links %}{% endblock %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <header>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="intro-text">
+                        <span class="name">
+                            {% block pagename %}{% endblock %}
+                        </span>
+                        <hr class="star-light"></hr>
+                        <span class="skills">
+                            {% block subname %}{% endblock %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    {% include "partials/flashes.html" %}
     {% block body %}{% endblock %}
+    <footer class="text-center">
+        <div class="footer-above">
+            <div class="container">
+                <div class="row">
+                    <div class="footer-col col-md-6">
+                        <h3>GitHub</h3>
+                        <p>Find the source code on GitHub:</p>
+                        <a href="https://github.com/LBPeraza/Snapples-to-Apples"
+                        class="btn-social btn-outline">
+                            <i class="fa fa-fw fa-github"></i>
+                        </a>
+                    </div>
+                    <div class="footer-col col-md-6">
+                        <h3>Theme</h3>
+                        <p>This website is built on the Freelance Bootstrap theme.</p>
+                        <p>
+                            <a href="http://blackrockdigital.github.io/startbootstrap-freelancer/">
+                            Freelance</a> is a free Bootstrap theme created by
+                            <a href="http://startbootstrap.com/">
+                                Start Bootstrap</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-below">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        Made for TartanHacks 2016
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <div class="scroll-top page-scroll hidden-lg hidden-md"
+         style="display: block;">
+        <a class="btn btn-primary" href="#page-top">
+            <i class="fa fa-chevron-up"></i>
+        </a>
     </div>
+    <script src="{{ url_for("static", filename="js/jquery.js") }}"></script>
+    <script src="{{ url_for("static", filename="js/bootstrap.min.js") }}"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+    <script src="{{ url_for("static", filename="js/classie.js") }}"></script>
+    <script src="{{ url_for("static", filename="js/cbpAnimatedHeader.js") }}"></script>
+    <script src="{{ url_for("static", filename="js/jqBootstrapValidation.js") }}"></script>
+    <script src="/static/js/freelancer.js"></script>
+    {% block scripts %}{% endblock %}
 </body>
