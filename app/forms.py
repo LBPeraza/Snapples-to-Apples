@@ -6,7 +6,13 @@ from flask.ext.uploads import UploadSet, IMAGES
 
 images = UploadSet('images', IMAGES)
 
+class WaitForm(Form):
+    pass
+
 class GameForm(Form):
+    pass
+
+class GameOverForm(Form):
     pass
 
 class PickAWordForm(Form):

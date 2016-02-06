@@ -83,7 +83,9 @@ def gamePage(user, game):
                                form=form)
 
 def gamePlay(user, game):
-    if game.phrase == "" or game.phrase == None: #not sure which it'll be
+    if game.current_round > game.rounds: #game is over
+        return gameOver(user, game)
+    elif game.phrase == "" or game.phrase == None:
         return pickingPhase(user, game)
     else:
         picker_id = game.current_player
@@ -91,6 +93,17 @@ def gamePlay(user, game):
             return selectingPhase(user, game)
         else:
             return uploadingPhase(user, game)
+
+def myKey(user):
+    return user.experience
+
+def gameOver(user, game):
+    form = GameOverForm(request.form)
+    users = game.users
+    users = sorted(users, key=myKey)
+    game.in_progress = False
+    db.session.commit()
+    return render_template('gameOver.html', form=form, users=game.users)
 
 def pickingPhase(user, game):
     form = PickAWordForm(request.form)
@@ -107,16 +120,18 @@ def selectingPhase(user, game):
         round=game.current_round, pictures=game.pictures)
 
 def uploadingPhase(user, game):
-    #picture = Picture.query.filter_by(user=user.id).first()
-    #if picture == None:
+    picture = Picture.query.filter_by(user_id=user.id).first()
+    picker_id = game.current_player
+    picker = User.query.filter_by(id=picker_id).first()
+    if picture == None:
         form = TakeForm(request.form)
-        picker_id = game.current_player
-        picker = User.query.filter_by(id=picker_id).first()
         return render_template('take.html', form=form, word=game.phrase,
             round=game.current_round, picker=picker.username)
-    #else:
-     #   form = WaitForm(request.form)
-      #  return render_template('')
+    else:
+        form = WaitForm(request.form)
+        return render_template('wait.html', picker=picker.username, 
+            picture=picture.id, round=game.current_round,
+            word=game.phrase)
 
 
 @mod.route('beginGame/', methods=['GET', 'POST'])
@@ -164,7 +179,6 @@ def take():
         db.session.add(picture)
         game.pictures.append(picture)
         db.session.commit()
-        flash('Success! Picture id: %d' % picture.id, 'success')
         return 'Success'
     flashErrors(form)
     return render_template('take.html', form=form)
@@ -177,11 +191,11 @@ def winner(picture):
     if game is None:
         flash('You\'re not in a game!', 'warning')
         return redirect(url_for('.index'))
-    if game.current_player != user:
+    if game.current_player != user.id:
         flash('You\'re not the current picker!', 'warning')
         return redirect(url_for('.index'))
     game.current_round += 1
-    pic = Picture.query.filter_by(id=picture)
+    pic = Picture.query.filter_by(id=picture).first()
     playerWinner = game.users.filter_by(id=pic.user_id).first()
     playerWinner.current_streak += 1
     playerWinner.experience += playerWinner.current_streak
@@ -191,10 +205,7 @@ def winner(picture):
         if player != playerWinner and player != user:
             player.current_streak = 0
 
-    if game.current_round > game.rounds:
-        #game over
-        game.in_progress = False
-    else:
+    if game.current_round <= game.rounds:
         #go on to next round
         game.phrase = ""
         for picture in game.pictures:
@@ -202,6 +213,7 @@ def winner(picture):
             db.session.delete(picture)
         users = getPlayerOrder(game)
         game.current_player = users[game.current_round % len(users)].id
+    flash('%s was the winner!' % playerWinner.username, 'success')
     db.session.commit()
     return redirect(url_for('.index'))
 
