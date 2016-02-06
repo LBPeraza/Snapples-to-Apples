@@ -101,9 +101,25 @@ def gameOver(user, game):
     form = GameOverForm(request.form)
     users = game.users
     users = sorted(users, key=myKey)
-    game.in_progress = False
     db.session.commit()
-    return render_template('gameOver.html', form=form, users=game.users)
+    return render_template('gameOver.html', form=form, users=users)
+
+@mod.route('endGame/', methods=['GET', 'POST'])
+@loginRequired
+def endGame():
+    user = User.query.filter_by(id=session['user-info']['id']).first()
+    game = user.game
+    if game is None:
+        flash('You\'re not in a game!', 'warning')
+        return redirect(url_for('.index'))
+    user.game_id = None
+    game.users.remove(user)
+    if game.users.count() == 0:
+        game.in_progress = False
+        db.session.delete(game)
+    db.session.commit()
+    return redirect(url_for('.index'))
+
 
 def pickingPhase(user, game):
     form = PickAWordForm(request.form)
