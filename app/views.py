@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import io
 from flask import Blueprint, render_template, abort, flash, send_file, request
 from flask_admin import Admin
