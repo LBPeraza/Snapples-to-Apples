@@ -394,6 +394,21 @@ def viewPicture(picID):
     return send_file(io.BytesIO(picture.data))
 
 
+@mod.route('scoreboard', methods=['GET'])
+@loginRequired
+def scoreboard():
+    sort = request.args.get('sortby')
+    if sort is None or sort.lower() == 'exp':
+        users = User.query.order_by(User.experience).all()
+    elif sort.lower() == 'str':
+        users = User.query.order_by(User.best_streak).all()
+
+    return render_template('scoreboard.html', 
+            users=users,
+            me=session['info']['id']
+        )
+
+
 @mod.route('look/<picID>', methods=['GET'])
 @loginRequired
 @nocache
