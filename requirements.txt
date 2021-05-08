@@ -1,5 +1,5 @@
 alembic==0.8.4
-eventlet==0.18.1
+eventlet==0.31.0
 Flask==1.0
 Flask-Admin==1.4.0
 Flask-Login==0.3.2
