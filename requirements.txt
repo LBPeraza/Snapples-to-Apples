@@ -22,5 +22,5 @@ python-socketio==1.0
 six==1.10.0
 SQLAlchemy==1.0.11
 Werkzeug==0.15.3
-wheel==0.26.0
+wheel==0.38.1
 WTForms==2.1
